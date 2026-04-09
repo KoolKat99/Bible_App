@@ -1,0 +1,118 @@
+/* ══════════════════════════════════════════════════════════════
+   variables.css  —  PostHog-inspired Design Tokens
+   Bible Viewer
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ── Colour: Backgrounds ──────────────────────────────────── */
+  --bg-page:        #fdfdf8;   /* warm parchment — primary canvas       */
+  --bg-surface:     #eeefe9;   /* sage cream — secondary surfaces        */
+  --bg-elevated:    #e5e7e0;   /* light sage — buttons, tertiary         */
+  --bg-featured:    #d4c9b8;   /* warm tan — featured / accented areas   */
+  --bg-hover:       #f4f4f4;   /* universal hover state                  */
+  --bg-dark:        #1e1f23;   /* near-black — primary CTA / dark areas  */
+  --bg-overlay:     rgba(35, 37, 29, 0.55); /* modal backdrop            */
+
+  /* ── Colour: Text ─────────────────────────────────────────── */
+  --text-primary:   #4d4f46;   /* olive ink — all body text              */
+  --text-heading:   #23251d;   /* deep olive — headings & emphasis       */
+  --text-muted:     #65675e;   /* muted olive — secondary labels         */
+  --text-placeholder: #9ea096; /* sage placeholder — disabled / hints    */
+  --text-on-dark:   #fdfdf8;   /* parchment-white on dark surfaces       */
+  --text-on-accent: #fdfdf8;   /* white on orange                        */
+  --text-code:      #23251d;   /* deep olive for inline code             */
+
+  /* ── Colour: Brand & Accents ──────────────────────────────── */
+  --orange:         #F54E00;   /* PostHog Orange — hover accent only     */
+  --amber:          #F7A501;   /* amber gold — dark-button hover text    */
+  --gold-border:    #b17816;   /* amber-gold — featured CTA borders      */
+  --focus-ring:     rgba(59, 130, 246, 0.5); /* blue focus only          */
+
+  /* ── Colour: Borders ─────────────────────────────────────────*/
+  --border:         #bfc1b7;   /* sage border — primary border colour    */
+  --border-input:   #b6b7af;   /* light border — toolbar / input         */
+  --border-strong:  #9ea096;   /* stronger border for emphasis           */
+
+  /* ── Colour: Semantic ─────────────────────────────────────── */
+  --danger:         #c0392b;
+  --danger-bg:      #fdecea;
+
+  /* ── Bookmark / Comment accent colours ───────────────────── */
+  --pin-amber:      #F7A501;
+  --pin-blue:       #3b82f6;
+  --pin-green:      #16a34a;
+  --pin-red:        #dc2626;
+
+  /* ── Typography ───────────────────────────────────────────── */
+  --font-sans:      'IBM Plex Sans', -apple-system, system-ui, 'Avenir Next',
+                    Avenir, 'Segoe UI', 'Helvetica Neue', Helvetica,
+                    Ubuntu, Roboto, Noto, Arial, sans-serif;
+  --font-mono:      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    'Liberation Mono', 'Courier New', monospace;
+
+  /* Type scale */
+  --text-xs:        12px;
+  --text-sm:        13px;
+  --text-base:      15px;
+  --text-md:        16px;
+  --text-lg:        18px;
+  --text-xl:        20px;
+  --text-2xl:       24px;
+  --text-3xl:       30px;
+
+  /* Weight */
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semi:    600;
+  --weight-bold:    700;
+  --weight-black:   800;
+
+  /* Line-heights */
+  --lh-tight:   1.20;
+  --lh-snug:    1.33;
+  --lh-normal:  1.50;
+  --lh-relaxed: 1.71;
+
+  /* Letter-spacing */
+  --ls-tight:   -0.75px;
+  --ls-snug:    -0.5px;
+  --ls-normal:  0px;
+  --ls-wide:    0.06em;
+  --ls-wider:   0.10em;
+
+  /* ── Spacing ──────────────────────────────────────────────── */
+  --space-1:   2px;
+  --space-2:   4px;
+  --space-3:   6px;
+  --space-4:   8px;
+  --space-5:   10px;
+  --space-6:   12px;
+  --space-8:   16px;
+  --space-9:   18px;
+  --space-10:  24px;
+  --space-12:  32px;
+  --space-14:  34px;
+
+  /* ── Border Radius ────────────────────────────────────────── */
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-pill: 9999px;
+
+  /* ── Elevation ────────────────────────────────────────────── */
+  --shadow-none:    none;
+  --shadow-float:   0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* ── Layout ───────────────────────────────────────────────── */
+  --sidebar-width:  272px;
+  --topbar-height:  52px;
+
+  /* ── Transitions ─────────────────────────────────────────── */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast:   120ms;
+  --duration-base:   180ms;
+  --duration-slow:   280ms;
+  --duration-spring: 360ms;
+}

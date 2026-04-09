@@ -1,0 +1,235 @@
+/* ══════════════════════════════════════════════════════════════
+   animations.css  —  Bible Viewer
+   Motion design — restrained, purposeful, fast
+   ══════════════════════════════════════════════════════════════ */
+
+@import url('variables.css');
+
+/* ════════════════════════════════════════════════════════════
+   KEYFRAMES
+   ════════════════════════════════════════════════════════════ */
+
+/* Modal: slide up + fade in */
+@keyframes modalIn {
+  from {
+    opacity:   0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity:   1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal backdrop fade */
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Sidebar panel: slide in from left */
+@keyframes panelReveal {
+  from {
+    opacity:   0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity:   1;
+    transform: translateX(0);
+  }
+}
+
+/* List card: fade + lift */
+@keyframes cardIn {
+  from {
+    opacity:   0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity:   1;
+    transform: translateY(0);
+  }
+}
+
+/* Chapter grid: unfold downward */
+@keyframes gridOpen {
+  from {
+    opacity:         0;
+    transform:       scaleY(0.85);
+    transform-origin: top center;
+  }
+  to {
+    opacity:         1;
+    transform:       scaleY(1);
+    transform-origin: top center;
+  }
+}
+
+/* Pin pop */
+@keyframes pinPop {
+  0%   { transform: rotate(-45deg) translateY(-50%) scale(0); opacity: 0; }
+  70%  { transform: rotate(-45deg) translateY(-50%) scale(1.2); opacity: 1; }
+  100% { transform: rotate(-45deg) translateY(-50%) scale(1); opacity: 1; }
+}
+
+/* Tooltip fade */
+@keyframes tooltipFade {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Page canvas: cross-fade on page turn */
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Orange highlight pulse — used on newly added card */
+@keyframes highlightPulse {
+  0%   { box-shadow: 0 0 0 0px rgba(245, 78, 0, 0.4); }
+  50%  { box-shadow: 0 0 0 4px rgba(245, 78, 0, 0.15); }
+  100% { box-shadow: 0 0 0 0px rgba(245, 78, 0, 0); }
+}
+
+/* Bookmark colour dot bounce */
+@keyframes dotBounce {
+  0%, 100% { transform: scale(1); }
+  40%       { transform: scale(1.5); }
+  60%       { transform: scale(0.9); }
+}
+
+/* Spinner for loading state */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   APPLIED ANIMATIONS
+   ════════════════════════════════════════════════════════════ */
+
+/* Modal backdrop */
+.modal-bg.open {
+  animation: backdropIn var(--duration-base) var(--ease-out) both;
+}
+
+/* Modal panel */
+.modal-bg.open .modal {
+  animation: modalIn var(--duration-slow) var(--ease-out) both;
+}
+
+/* Tab panel reveal */
+.tab-panel.active {
+  animation: panelReveal var(--duration-base) var(--ease-out) both;
+}
+
+/* Chapter grid open */
+.chapter-grid.open {
+  animation: gridOpen var(--duration-base) var(--ease-out) both;
+}
+
+/* PDF canvas page-turn fade */
+#pdfCanvas {
+  animation: pageFadeIn var(--duration-base) var(--ease-out) both;
+}
+
+/* Comment pin entrance */
+.comment-pin {
+  animation: pinPop var(--duration-spring) var(--ease-out) both;
+}
+
+/* Pin tooltip */
+.pin-tooltip[style*="block"] {
+  animation: tooltipFade 100ms var(--ease-out) both;
+}
+
+/* New bookmark / comment card highlight */
+.list-card.is-new {
+  animation: highlightPulse 800ms var(--ease-out) both;
+}
+
+/* Staggered card entrance — JS applies .is-entering class */
+.list-card.is-entering {
+  animation: cardIn var(--duration-base) var(--ease-out) both;
+}
+
+/* Book row hover — subtle left-border slide */
+.book-header {
+  position: relative;
+}
+.book-header::before {
+  content:    '';
+  position:   absolute;
+  left:       0;
+  top:        4px;
+  bottom:     4px;
+  width:      2px;
+  background: var(--orange);
+  border-radius: var(--radius-pill);
+  transform:  scaleY(0);
+  transform-origin: center;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.book-header:hover::before,
+.book-header.open::before {
+  transform: scaleY(1);
+}
+
+/* Toolbar button press ripple */
+.tb-btn {
+  position:   relative;
+  overflow:   hidden;
+}
+.tb-btn::after {
+  content:        '';
+  position:       absolute;
+  inset:          0;
+  background:     var(--orange);
+  opacity:        0;
+  border-radius:  inherit;
+  transition:     opacity var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+}
+.tb-btn:active::after { opacity: 0.08; }
+
+/* Color dot bounce when a new bookmark is added */
+.list-card.is-new .color-dot {
+  animation: dotBounce 500ms var(--ease-out) both;
+}
+
+/* ════════════════════════════════════════════════════════════
+   LOADING SPINNER  (shown while PDF loads)
+   ════════════════════════════════════════════════════════════ */
+.pdf-loader {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--space-8);
+  color:           var(--text-muted);
+  font-size:       var(--text-base);
+  font-weight:     var(--weight-medium);
+  padding:         var(--space-12);
+}
+
+.pdf-loader__spinner {
+  width:         32px;
+  height:        32px;
+  border:        2px solid var(--border);
+  border-top:    2px solid var(--text-heading);
+  border-radius: var(--radius-pill);
+  animation:     spin 600ms linear infinite;
+}
+
+/* ════════════════════════════════════════════════════════════
+   REDUCED MOTION
+   ════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration:   0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:  0.01ms !important;
+  }
+}

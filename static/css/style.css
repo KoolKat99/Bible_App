@@ -173,9 +173,7 @@ body {
   pointer-events: auto;
 }
 
-/* Inner content overflow clipping */
-#bibleTree { overflow-y: auto; overflow-x: hidden; }
-.tab-panel { overflow: hidden; }
+
 
 /* Sidebar header with title (right sidebar only) */
 .sidebar-header {
@@ -292,7 +290,7 @@ body {
 .search-input:focus { border-color: var(--border-strong); box-shadow: 0 0 0 2px var(--focus-ring); }
 
 /* Bible tree */
-#bibleTree { flex: 1; overflow-y: auto; padding: 0 var(--space-4) var(--space-8); }
+#bibleTree { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 var(--space-4) var(--space-8); }
 
 .testament-label {
   font-size:      var(--text-xs);

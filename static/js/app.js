@@ -39,10 +39,12 @@ function updateToggleIcons() {
 }
 
 btnToggleLeft.addEventListener('click', () => {
+  sidebarLeft.style.width = '';
   sidebarLeft.classList.toggle('open');
   updateToggleIcons();
 });
 btnToggleRight.addEventListener('click', () => {
+  sidebarRight.style.width = '';
   sidebarRight.classList.toggle('open');
   updateToggleIcons();
 });

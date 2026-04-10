@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📖 Bible Reader</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <title>Bible Reader — ESV</title>
   <link rel="stylesheet" href="/static/css/variables.css">
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/animations.css">
@@ -14,21 +13,19 @@
 <!-- ═══════════════════ TOP BAR ═══════════════════ -->
 <header class="topbar">
   <div class="topbar-left">
-    <span class="logo">Bible Reader</span>
+    <span class="logo">
+      <span class="logo-icon">✦</span>
+      Bible Reader
+    </span>
   </div>
   <div class="topbar-center">
-    <button class="tb-btn" id="btnZoomOut" title="Zoom Out">−</button>
-    <span id="zoomLabel">100%</span>
-    <button class="tb-btn" id="btnZoomIn" title="Zoom In">+</button>
-    <div class="separator"></div>
-    <button class="tb-btn" id="btnPrevPage" title="Previous Page">‹</button>
-    <input type="number" id="pageInput" min="1" value="1">
-    <span id="pageTotal">/ —</span>
-    <button class="tb-btn" id="btnNextPage" title="Next Page">›</button>
+    <button class="tb-btn" id="btnPrev" title="Previous Chapter">‹</button>
+    <span class="nav-label" id="navLabel">Select a book</span>
+    <button class="tb-btn" id="btnNext" title="Next Chapter">›</button>
   </div>
   <div class="topbar-right">
-    <button class="tb-btn icon-btn" id="btnAddBookmark" title="Bookmark this page">🔖 Bookmark</button>
-    <button class="tb-btn icon-btn" id="btnAddComment"  title="Add a comment">💬 Comment</button>
+    <button class="tb-btn tb-btn-wide" id="btnAddBookmark" title="Bookmark this chapter">🔖 Bookmark</button>
+    <button class="tb-btn tb-btn-wide" id="btnAddNote" title="Add a note">✏️ Note</button>
   </div>
 </header>
 
@@ -38,36 +35,35 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-tabs">
-      <button class="tab active" data-tab="search">🔍 Search</button>
-      <button class="tab" data-tab="bookmarks">🔖 Bookmarks</button>
-      <button class="tab" data-tab="comments">💬 Comments</button>
+      <button class="tab active" data-tab="books">Books</button>
+      <button class="tab" data-tab="bookmarks">Bookmarks</button>
+      <button class="tab" data-tab="notes">Notes</button>
     </div>
 
-    <!-- SEARCH PANEL -->
-    <div class="tab-panel active" id="tab-search">
-      <div class="panel-title">Chapter Navigator</div>
-      <input class="search-input" id="bookSearch" placeholder="Search book…" autocomplete="off">
+    <!-- BOOKS PANEL -->
+    <div class="tab-panel active" id="tab-books">
+      <input class="search-input" id="bookSearch" placeholder="Search books…" autocomplete="off">
       <div id="bibleTree"></div>
     </div>
 
     <!-- BOOKMARKS PANEL -->
     <div class="tab-panel" id="tab-bookmarks">
-      <div class="panel-title">My Bookmarks</div>
       <div id="bookmarkList" class="item-list"></div>
     </div>
 
-    <!-- COMMENTS PANEL -->
-    <div class="tab-panel" id="tab-comments">
-      <div class="panel-title">My Comments</div>
-      <div id="commentList" class="item-list"></div>
+    <!-- NOTES PANEL -->
+    <div class="tab-panel" id="tab-notes">
+      <div id="noteList" class="item-list"></div>
     </div>
   </aside>
 
-  <!-- PDF CANVAS AREA -->
-  <main class="viewer-area" id="viewerArea">
-    <div id="canvasContainer">
-      <canvas id="pdfCanvas"></canvas>
-      <!-- comment pins injected here -->
+  <!-- READER AREA -->
+  <main class="reader-area" id="readerArea">
+    <div class="reader-content" id="readerContent">
+      <div class="reader-welcome">
+        <h2>Welcome to Bible Reader</h2>
+        <p>Select a book and chapter from the sidebar to begin reading the ESV Bible.</p>
+      </div>
     </div>
   </main>
 </div>
@@ -77,55 +73,46 @@
 <!-- Bookmark modal -->
 <div class="modal-bg" id="bookmarkModal">
   <div class="modal">
-    <h3>🔖 Add Bookmark</h3>
+    <h3>Bookmark Chapter</h3>
     <label>Label
       <input type="text" id="bmLabel" placeholder="e.g. Genesis 1 – Creation">
     </label>
-    <label>Colour
-      <input type="color" id="bmColor" value="#f59e0b">
-    </label>
     <div class="modal-actions">
       <button class="btn-secondary" id="bmCancel">Cancel</button>
-      <button class="btn-primary"   id="bmSave">Save</button>
+      <button class="btn-primary" id="bmSave">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Comment modal -->
-<div class="modal-bg" id="commentModal">
+<!-- Note modal -->
+<div class="modal-bg" id="noteModal">
   <div class="modal">
-    <h3>💬 Add Comment</h3>
+    <h3>Add Note</h3>
     <label>Note
-      <textarea id="cmText" rows="4" placeholder="Write your note…"></textarea>
-    </label>
-    <label>Colour
-      <input type="color" id="cmColor" value="#3b82f6">
+      <textarea id="noteText" rows="4" placeholder="Write your note…"></textarea>
     </label>
     <div class="modal-actions">
-      <button class="btn-secondary" id="cmCancel">Cancel</button>
-      <button class="btn-primary"   id="cmSave">Save</button>
+      <button class="btn-secondary" id="noteCancel">Cancel</button>
+      <button class="btn-primary" id="noteSave">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Edit comment modal -->
-<div class="modal-bg" id="editCommentModal">
+<!-- Edit note modal -->
+<div class="modal-bg" id="editNoteModal">
   <div class="modal">
-    <h3>✏️ Edit Comment</h3>
+    <h3>Edit Note</h3>
     <label>Note
-      <textarea id="ecText" rows="4"></textarea>
+      <textarea id="enText" rows="4"></textarea>
     </label>
-    <input type="hidden" id="ecId">
+    <input type="hidden" id="enId">
     <div class="modal-actions">
-      <button class="btn-secondary" id="ecCancel">Cancel</button>
-      <button class="btn-primary"   id="ecSave">Save</button>
+      <button class="btn-secondary" id="enCancel">Cancel</button>
+      <button class="btn-primary" id="enSave">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Comment pin tooltip -->
-<div class="pin-tooltip" id="pinTooltip"></div>
-
-<script src="/static/app.js"></script>
+<script src="/static/js/app.js"></script>
 </body>
 </html>

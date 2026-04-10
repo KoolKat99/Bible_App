@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, send_file, abort
+from flask import Flask, render_template, jsonify, request, abort
 import json
 import os
 from datetime import datetime
@@ -6,12 +6,47 @@ from datetime import datetime
 app = Flask(__name__)
 
 # ── Config ──────────────────────────────────────────────────────────────────
-PDF_PATH = os.environ.get("BIBLE_PDF", "bible.pdf")   # drop your bible.pdf here
-DATA_DIR  = "data"
+DATA_DIR = "data"
 BOOKMARKS_FILE = os.path.join(DATA_DIR, "bookmarks.json")
-COMMENTS_FILE  = os.path.join(DATA_DIR, "comments.json")
+NOTES_FILE = os.path.join(DATA_DIR, "notes.json")
+BIBLE_JSON = os.path.join("static", "data", "ESV_Bible.json")
 
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# ── Load Bible data once at startup ─────────────────────────────────────────
+with open(BIBLE_JSON, encoding="utf-8") as f:
+    BIBLE_DATA = json.load(f)
+
+# Build lookup structures
+BOOK_INDEX = {}          # { "Genesis": { chapters: {1: [verses], 2: [verses]} } }
+BOOK_NAMES = []          # ordered list of book names
+OT_BOOKS = set()
+NT_BOOKS = set()
+
+_OT_NAMES = {
+    "Genesis","Exodus","Leviticus","Numbers","Deuteronomy",
+    "Joshua","Judges","Ruth","1 Samuel","2 Samuel",
+    "1 Kings","2 Kings","1 Chronicles","2 Chronicles",
+    "Ezra","Nehemiah","Esther","Job","Psalms",
+    "Proverbs","Ecclesiastes","Song of Solomon","Isaiah",
+    "Jeremiah","Lamentations","Ezekiel","Daniel","Hosea",
+    "Joel","Amos","Obadiah","Jonah","Micah","Nahum",
+    "Habakkuk","Zephaniah","Haggai","Zechariah","Malachi"
+}
+
+for book in BIBLE_DATA["books"]:
+    name = book["name"]
+    BOOK_NAMES.append(name)
+    chapters = {}
+    for v in book["verses"]:
+        ch = v["chapter"]
+        chapters.setdefault(ch, []).append(v)
+    BOOK_INDEX[name] = {"chapters": chapters}
+    if name in _OT_NAMES:
+        OT_BOOKS.add(name)
+    else:
+        NT_BOOKS.add(name)
+
 
 def _load(path):
     if os.path.exists(path):
@@ -23,17 +58,66 @@ def _save(path, data):
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
 
+
 # ── Routes ───────────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/pdf")
-def serve_pdf():
-    if not os.path.exists(PDF_PATH):
-        abort(404, description=f"PDF not found at '{PDF_PATH}'. "
-              "Set the BIBLE_PDF env-var or place bible.pdf next to app.py.")
-    return send_file(PDF_PATH, mimetype="application/pdf")
+
+# ── Bible API ────────────────────────────────────────────────────────────────
+@app.route("/api/bible-structure")
+def bible_structure():
+    """Return { "Old Testament": {"Genesis": 50, ...}, "New Testament": {...} }"""
+    structure = {"Old Testament": {}, "New Testament": {}}
+    for name in BOOK_NAMES:
+        num_chapters = len(BOOK_INDEX[name]["chapters"])
+        if name in OT_BOOKS:
+            structure["Old Testament"][name] = num_chapters
+        else:
+            structure["New Testament"][name] = num_chapters
+    return jsonify(structure)
+
+
+@app.route("/api/chapter/<book>/<int:chapter>")
+def get_chapter(book, chapter):
+    """Return verses for a specific book and chapter."""
+    if book not in BOOK_INDEX:
+        abort(404, description=f"Book '{book}' not found")
+    chapters = BOOK_INDEX[book]["chapters"]
+    if chapter not in chapters:
+        abort(404, description=f"Chapter {chapter} not found in {book}")
+    verses = chapters[chapter]
+    num_chapters = len(chapters)
+
+    # Determine prev/next chapter navigation
+    prev_ch = None
+    next_ch = None
+    if chapter > 1:
+        prev_ch = {"book": book, "chapter": chapter - 1}
+    else:
+        idx = BOOK_NAMES.index(book)
+        if idx > 0:
+            prev_book = BOOK_NAMES[idx - 1]
+            prev_ch = {"book": prev_book, "chapter": len(BOOK_INDEX[prev_book]["chapters"])}
+
+    if chapter < num_chapters:
+        next_ch = {"book": book, "chapter": chapter + 1}
+    else:
+        idx = BOOK_NAMES.index(book)
+        if idx < len(BOOK_NAMES) - 1:
+            next_book = BOOK_NAMES[idx + 1]
+            next_ch = {"book": next_book, "chapter": 1}
+
+    return jsonify({
+        "book": book,
+        "chapter": chapter,
+        "total_chapters": num_chapters,
+        "verses": verses,
+        "prev": prev_ch,
+        "next": next_ch
+    })
+
 
 # ── Bookmarks ────────────────────────────────────────────────────────────────
 @app.route("/api/bookmarks", methods=["GET"])
@@ -45,10 +129,11 @@ def add_bookmark():
     data = request.json
     bookmarks = _load(BOOKMARKS_FILE)
     bookmark = {
-        "id":    len(bookmarks) + 1,
-        "page":  data["page"],
-        "label": data.get("label", f"Page {data['page']}"),
-        "color": data.get("color", "#f59e0b"),
+        "id": len(bookmarks) + 1,
+        "book": data["book"],
+        "chapter": data["chapter"],
+        "label": data.get("label", f"{data['book']} {data['chapter']}"),
+        "color": data.get("color", "#ff385c"),
         "created": datetime.now().isoformat()
     }
     bookmarks.append(bookmark)
@@ -61,80 +146,45 @@ def delete_bookmark(bid):
     _save(BOOKMARKS_FILE, bookmarks)
     return jsonify({"ok": True})
 
-@app.route("/api/bookmarks/<int:bid>", methods=["PUT"])
-def update_bookmark(bid):
-    data = request.json
-    bookmarks = _load(BOOKMARKS_FILE)
-    for b in bookmarks:
-        if b["id"] == bid:
-            b["label"] = data.get("label", b["label"])
-            b["color"] = data.get("color", b["color"])
-    _save(BOOKMARKS_FILE, bookmarks)
-    return jsonify({"ok": True})
 
-# ── Comments ─────────────────────────────────────────────────────────────────
-@app.route("/api/comments", methods=["GET"])
-def get_comments():
-    return jsonify(_load(COMMENTS_FILE))
+# ── Notes ────────────────────────────────────────────────────────────────────
+@app.route("/api/notes", methods=["GET"])
+def get_notes():
+    return jsonify(_load(NOTES_FILE))
 
-@app.route("/api/comments", methods=["POST"])
-def add_comment():
+@app.route("/api/notes", methods=["POST"])
+def add_note():
     data = request.json
-    comments = _load(COMMENTS_FILE)
-    comment = {
-        "id":      len(comments) + 1,
-        "page":    data["page"],
-        "text":    data["text"],
-        "color":   data.get("color", "#3b82f6"),
+    notes = _load(NOTES_FILE)
+    note = {
+        "id": len(notes) + 1,
+        "book": data["book"],
+        "chapter": data["chapter"],
+        "verse": data.get("verse"),
+        "text": data["text"],
         "created": datetime.now().isoformat()
     }
-    comments.append(comment)
-    _save(COMMENTS_FILE, comments)
-    return jsonify(comment), 201
+    notes.append(note)
+    _save(NOTES_FILE, notes)
+    return jsonify(note), 201
 
-@app.route("/api/comments/<int:cid>", methods=["DELETE"])
-def delete_comment(cid):
-    comments = [c for c in _load(COMMENTS_FILE) if c["id"] != cid]
-    _save(COMMENTS_FILE, comments)
+@app.route("/api/notes/<int:nid>", methods=["DELETE"])
+def delete_note(nid):
+    notes = [n for n in _load(NOTES_FILE) if n["id"] != nid]
+    _save(NOTES_FILE, notes)
     return jsonify({"ok": True})
 
-@app.route("/api/comments/<int:cid>", methods=["PUT"])
-def update_comment(cid):
+@app.route("/api/notes/<int:nid>", methods=["PUT"])
+def update_note(nid):
     data = request.json
-    comments = _load(COMMENTS_FILE)
-    for c in comments:
-        if c["id"] == cid:
-            c["text"] = data.get("text", c["text"])
-    _save(COMMENTS_FILE, comments)
+    notes = _load(NOTES_FILE)
+    for n in notes:
+        if n["id"] == nid:
+            n["text"] = data.get("text", n["text"])
+    _save(NOTES_FILE, notes)
     return jsonify({"ok": True})
 
-# ── Bible structure for chapter search ───────────────────────────────────────
-BIBLE = {
-    "Old Testament": {
-        "Genesis":50,"Exodus":40,"Leviticus":27,"Numbers":36,"Deuteronomy":34,
-        "Joshua":24,"Judges":21,"Ruth":4,"1 Samuel":31,"2 Samuel":24,
-        "1 Kings":22,"2 Kings":25,"1 Chronicles":29,"2 Chronicles":36,
-        "Ezra":10,"Nehemiah":13,"Esther":10,"Job":42,"Psalms":150,
-        "Proverbs":31,"Ecclesiastes":12,"Song of Solomon":8,"Isaiah":66,
-        "Jeremiah":52,"Lamentations":5,"Ezekiel":48,"Daniel":12,"Hosea":14,
-        "Joel":3,"Amos":9,"Obadiah":1,"Jonah":4,"Micah":7,"Nahum":3,
-        "Habakkuk":3,"Zephaniah":3,"Haggai":2,"Zechariah":14,"Malachi":4
-    },
-    "New Testament": {
-        "Matthew":28,"Mark":16,"Luke":24,"John":21,"Acts":28,"Romans":16,
-        "1 Corinthians":16,"2 Corinthians":13,"Galatians":6,"Ephesians":6,
-        "Philippians":4,"Colossians":4,"1 Thessalonians":5,"2 Thessalonians":3,
-        "1 Timothy":6,"2 Timothy":4,"Titus":3,"Philemon":1,"Hebrews":13,
-        "James":5,"1 Peter":5,"2 Peter":3,"1 John":5,"2 John":1,
-        "3 John":1,"Jude":1,"Revelation":22
-    }
-}
-
-@app.route("/api/bible-structure")
-def bible_structure():
-    return jsonify(BIBLE)
 
 if __name__ == "__main__":
-    print("\n📖  Bible Viewer running at http://localhost:5000")
-    print(f"    PDF path: {os.path.abspath(PDF_PATH)}\n")
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    print("\n📖  Bible Reader running at http://localhost:8080\n")
+    app.run(host="127.0.0.1", port=8080, debug=True)

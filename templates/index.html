@@ -24,44 +24,22 @@
     <button class="tb-btn" id="btnNext" title="Next Chapter">›</button>
   </div>
   <div class="topbar-right">
-    <button class="tb-btn tb-btn-wide" id="btnAddHighlight" title="Highlight selected verses">🖍️ Highlight</button>
     <button class="tb-btn tb-btn-wide" id="btnAddBookmark" title="Bookmark this chapter or selected verses">🔖 Bookmark</button>
     <button class="tb-btn tb-btn-wide" id="btnAddNote" title="Add a note">✏️ Note</button>
+    <button class="tb-btn" id="btnThemeToggle" title="Toggle dark/light mode">🌙</button>
   </div>
 </header>
 
 <!-- ═══════════════════ LAYOUT ═══════════════════ -->
 <div class="layout">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-tabs">
-      <button class="tab active" data-tab="books">Books</button>
-      <button class="tab" data-tab="bookmarks">Bookmarks</button>
-      <button class="tab" data-tab="notes">Notes</button>
-      <button class="tab" data-tab="highlights">Highlights</button>
-    </div>
-
-    <!-- BOOKS PANEL -->
-    <div class="tab-panel active" id="tab-books">
-      <input class="search-input" id="bookSearch" placeholder="Search books…" autocomplete="off">
-      <div id="bibleTree"></div>
-    </div>
-
-    <!-- BOOKMARKS PANEL -->
-    <div class="tab-panel" id="tab-bookmarks">
-      <div id="bookmarkList" class="item-list"></div>
-    </div>
-
-    <!-- NOTES PANEL -->
-    <div class="tab-panel" id="tab-notes">
-      <div id="noteList" class="item-list"></div>
-    </div>
-
-    <!-- HIGHLIGHTS PANEL -->
-    <div class="tab-panel" id="tab-highlights">
-      <div id="highlightList" class="item-list"></div>
-    </div>
+  <!-- LEFT SIDEBAR: Books / Search -->
+  <aside class="sidebar sidebar-left open" id="sidebarLeft">
+    <input class="search-input" id="bookSearch" placeholder="Search books…" autocomplete="off">
+    <div id="bibleTree"></div>
+    <button class="sidebar-tab-toggle sidebar-tab-left" id="btnToggleLeft" title="Toggle books sidebar">
+      <span class="tab-toggle-icon">‹</span>
+    </button>
   </aside>
 
   <!-- READER AREA -->
@@ -73,6 +51,28 @@
       </div>
     </div>
   </main>
+
+  <!-- RIGHT SIDEBAR: Bookmarks / Notes / Highlights -->
+  <aside class="sidebar sidebar-right" id="sidebarRight">
+    <button class="sidebar-tab-toggle sidebar-tab-right" id="btnToggleRight" title="Toggle notes sidebar">
+      <span class="tab-toggle-icon">›</span>
+    </button>
+    <div class="sidebar-tabs">
+      <button class="tab active" data-tab="bookmarks">Bookmarks</button>
+      <button class="tab" data-tab="notes">Notes</button>
+      <button class="tab" data-tab="highlights">Highlights</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-bookmarks">
+      <div id="bookmarkList" class="item-list"></div>
+    </div>
+    <div class="tab-panel" id="tab-notes">
+      <div id="noteList" class="item-list"></div>
+    </div>
+    <div class="tab-panel" id="tab-highlights">
+      <div id="highlightList" class="item-list"></div>
+    </div>
+  </aside>
 </div>
 
 <!-- ═══════════════════ MODALS ═══════════════════ -->

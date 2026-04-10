@@ -14,15 +14,54 @@ const readerContent = document.getElementById('readerContent');
 const readerArea    = document.getElementById('readerArea');
 const navLabel      = document.getElementById('navLabel');
 
-// ── Tab switching ─────────────────────────────────────────────
+// ── Tab switching (right sidebar) ─────────────────────────────
 document.querySelectorAll('.sidebar-tabs .tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    const sidebar = tab.closest('.sidebar');
+    sidebar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    sidebar.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
   });
 });
+
+// ── Sidebar toggles ──────────────────────────────────────────
+const sidebarLeft  = document.getElementById('sidebarLeft');
+const sidebarRight = document.getElementById('sidebarRight');
+const btnToggleLeft  = document.getElementById('btnToggleLeft');
+const btnToggleRight = document.getElementById('btnToggleRight');
+
+function updateToggleIcons() {
+  const leftIcon = btnToggleLeft.querySelector('.tab-toggle-icon');
+  const rightIcon = btnToggleRight.querySelector('.tab-toggle-icon');
+  leftIcon.textContent = sidebarLeft.classList.contains('open') ? '‹' : '›';
+  rightIcon.textContent = sidebarRight.classList.contains('open') ? '›' : '‹';
+}
+
+btnToggleLeft.addEventListener('click', () => {
+  sidebarLeft.classList.toggle('open');
+  updateToggleIcons();
+});
+btnToggleRight.addEventListener('click', () => {
+  sidebarRight.classList.toggle('open');
+  updateToggleIcons();
+});
+updateToggleIcons();
+
+// ── Theme toggle ─────────────────────────────────────────────
+const themeBtn = document.getElementById('btnThemeToggle');
+function setTheme(dark) {
+  document.body.classList.toggle('dark-mode', dark);
+  themeBtn.textContent = dark ? '☀️' : '🌙';
+  localStorage.setItem('bible-reader-theme', dark ? 'dark' : 'light');
+}
+themeBtn.addEventListener('click', () => {
+  setTheme(!document.body.classList.contains('dark-mode'));
+  // Re-render chapter to update highlight colors for the new theme
+  if (chapterData) renderChapter();
+});
+// Restore saved theme
+if (localStorage.getItem('bible-reader-theme') === 'dark') setTheme(true);
 
 // ── Helpers ────────────────────────────────────────────────────
 function fmtDate(iso) {
@@ -56,7 +95,7 @@ function verseRangeLabel(book, chapter, vs, ve) {
 // ═══════════════════════════════════════════════════════════════
 //  CHAPTER LOADING & RENDERING
 // ═══════════════════════════════════════════════════════════════
-async function loadChapter(book, chapter) {
+async function loadChapter(book, chapter, scrollToVerse) {
   currentBook = book;
   currentChapter = chapter;
   selectedVerses.clear();
@@ -70,7 +109,21 @@ async function loadChapter(book, chapter) {
     renderChapter();
     updateNavLabel();
     highlightActiveChapter();
-    readerArea.scrollTop = 0;
+
+    if (scrollToVerse) {
+      // Scroll to the specific verse after rendering
+      setTimeout(() => {
+        const verseEl = readerContent.querySelector(`.verse[data-verse="${scrollToVerse}"]`);
+        if (verseEl) {
+          verseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Brief highlight pulse
+          verseEl.classList.add('verse-jump-highlight');
+          setTimeout(() => verseEl.classList.remove('verse-jump-highlight'), 1500);
+        }
+      }, 50);
+    } else {
+      readerArea.scrollTop = 0;
+    }
   } catch (e) {
     readerContent.innerHTML = `<div class="reader-welcome"><h2>Error</h2><p>${escHtml(e.message)}</p></div>`;
   }
@@ -147,15 +200,8 @@ function renderChapter() {
       if (e.target.classList.contains('footnote-ref')) return;
       e.preventDefault();
       const vn = parseInt(el.dataset.verse);
-      if (e.shiftKey && selectedVerses.size > 0) {
-        // Range select
-        const sorted = [...selectedVerses].sort((a, b) => a - b);
-        const anchor = sorted[0];
-        selectedVerses.clear();
-        const lo = Math.min(anchor, vn), hi = Math.max(anchor, vn);
-        for (let i = lo; i <= hi; i++) selectedVerses.add(i);
-      } else if (e.metaKey || e.ctrlKey) {
-        // Toggle single verse
+      if (e.shiftKey || e.metaKey || e.ctrlKey) {
+        // Multi-select: toggle individual verse (no range fill)
         if (selectedVerses.has(vn)) selectedVerses.delete(vn);
         else selectedVerses.add(vn);
       } else {
@@ -182,10 +228,10 @@ function updateVerseSelectionUI() {
   // Show/hide selection bar
   let bar = readerContent.querySelector('.verse-selection-bar');
   if (selectedVerses.size > 0) {
-    const range = getSelectedRange();
+    const sorted = [...selectedVerses].sort((a, b) => a - b);
     const label = selectedVerses.size === 1
-      ? `Verse ${range.start}`
-      : `Verses ${range.start}–${range.end}`;
+      ? `Verse ${sorted[0]}`
+      : `Verses ${sorted.join(', ')}`;
     if (!bar) {
       bar = document.createElement('div');
       bar.className = 'verse-selection-bar';
@@ -211,11 +257,25 @@ function clearSelection() {
   updateVerseSelectionUI();
 }
 
+// Dark mode variants of highlight colors for readable text
+const darkModeHighlightColors = {
+  '#fff3cd': '#5c4a00',  // Yellow
+  '#d1ecf1': '#0c3c4a',  // Blue
+  '#d4edda': '#1a3d22',  // Green
+  '#f8d7da': '#5a1a1e',  // Pink
+  '#e2d9f3': '#2e1f4e',  // Purple
+  '#ffe0cc': '#5c2e0e',  // Orange
+};
+
 function getVerseHighlightColor(verseNum) {
   if (!currentBook || !currentChapter) return null;
   for (const h of highlights) {
     if (h.book === currentBook && h.chapter === currentChapter &&
         verseNum >= h.verse_start && verseNum <= h.verse_end) {
+      const isDark = document.body.classList.contains('dark-mode');
+      if (isDark && darkModeHighlightColors[h.color]) {
+        return darkModeHighlightColors[h.color];
+      }
       return h.color;
     }
   }
@@ -267,7 +327,7 @@ function renderBookmarkList() {
     <div class="list-card is-entering" id="bm-${b.id}">
       <div class="card-top">
         <span class="color-dot" style="background:${escHtml(b.color)}"></span>
-        <span class="card-label" onclick="loadChapter('${escAttr(b.book)}', ${b.chapter})">${escHtml(b.label)}</span>
+        <span class="card-label" onclick="loadChapter('${escAttr(b.book)}', ${b.chapter}, ${b.verse_start || 'null'})">${escHtml(b.label)}</span>
         <div class="card-actions">
           <button class="card-action-btn" onclick="deleteBookmark(${b.id})" title="Delete">✕</button>
         </div>
@@ -348,7 +408,7 @@ function renderNoteList() {
     return `
     <div class="list-card is-entering">
       <div class="card-top">
-        <span class="card-label" onclick="loadChapter('${escAttr(n.book)}', ${n.chapter})">${escHtml(loc)}</span>
+        <span class="card-label" onclick="loadChapter('${escAttr(n.book)}', ${n.chapter}, ${n.verse_start || 'null'})">${escHtml(loc)}</span>
         <div class="card-actions">
           <button class="card-action-btn" onclick="openEditNote(${n.id})" title="Edit">✎</button>
           <button class="card-action-btn" onclick="deleteNote(${n.id})" title="Delete">✕</button>
@@ -454,7 +514,7 @@ function renderHighlightList() {
     <div class="list-card is-entering">
       <div class="card-top">
         <div class="highlight-color-bar" style="background:${escHtml(h.color)}"></div>
-        <span class="card-label" onclick="loadChapter('${escAttr(h.book)}', ${h.chapter})">${escHtml(loc)}</span>
+        <span class="card-label" onclick="loadChapter('${escAttr(h.book)}', ${h.chapter}, ${h.verse_start || 'null'})">${escHtml(loc)}</span>
         <div class="card-actions">
           <button class="card-action-btn" onclick="deleteHighlight(${h.id})" title="Remove">✕</button>
         </div>
@@ -483,11 +543,7 @@ function openHighlightForSelection() {
   if (range) openHighlightModal(range.start, range.end);
 }
 
-document.getElementById('btnAddHighlight').addEventListener('click', () => {
-  const range = getSelectedRange();
-  if (!range) return;
-  openHighlightModal(range.start, range.end);
-});
+
 
 // Color swatch selection
 document.querySelectorAll('#hlColorPicker .color-swatch').forEach(swatch => {
@@ -641,6 +697,45 @@ document.querySelectorAll('.modal-bg').forEach(bg => {
     if (e.target === bg) bg.classList.remove('open');
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+//  SIDEBAR RESIZING
+// ═══════════════════════════════════════════════════════════════
+function initSidebarResize(sidebar, side) {
+  const handle = document.createElement('div');
+  handle.className = `sidebar-resize-handle sidebar-resize-${side}`;
+  sidebar.appendChild(handle);
+
+  let startX, startWidth;
+
+  handle.addEventListener('mousedown', (e) => {
+    if (!sidebar.classList.contains('open')) return;
+    e.preventDefault();
+    startX = e.clientX;
+    startWidth = sidebar.getBoundingClientRect().width;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMouseMove(e) {
+      const dx = side === 'left' ? e.clientX - startX : startX - e.clientX;
+      const newWidth = Math.min(Math.max(startWidth + dx, 200), 600);
+      sidebar.style.width = newWidth + 'px';
+    }
+
+    function onMouseUp() {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+}
+
+initSidebarResize(sidebarLeft, 'left');
+initSidebarResize(sidebarRight, 'right');
 
 (async function init() {
   await Promise.all([loadBibleTree(), loadBookmarks(), loadNotes(), loadHighlights()]);

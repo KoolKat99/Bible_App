@@ -7,5 +7,23 @@
     "verse_end": 16,
     "color": "#fff3cd",
     "created": "2026-04-09T18:49:15.383200"
+  },
+  {
+    "id": 2,
+    "book": "Genesis",
+    "chapter": 1,
+    "verse_start": 7,
+    "verse_end": 9,
+    "color": "#ffe0cc",
+    "created": "2026-04-09T18:53:20.447830"
+  },
+  {
+    "id": 3,
+    "book": "Genesis",
+    "chapter": 1,
+    "verse_start": 4,
+    "verse_end": 4,
+    "color": "#e2d9f3",
+    "created": "2026-04-09T19:15:03.039084"
   }
 ]

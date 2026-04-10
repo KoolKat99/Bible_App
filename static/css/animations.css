@@ -129,6 +129,16 @@
   animation:     spin 600ms linear infinite;
 }
 
+/* Verse jump highlight pulse — uses box-shadow so it doesn't override background color */
+@keyframes verseJumpPulse {
+  0%   { box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.5), inset 0 0 8px rgba(255, 56, 92, 0.15); }
+  100% { box-shadow: 0 0 0 0px rgba(255, 56, 92, 0), inset 0 0 0px rgba(255, 56, 92, 0); }
+}
+.verse-jump-highlight {
+  animation: verseJumpPulse 1.5s var(--ease-out) both;
+  border-radius: 3px;
+}
+
 /* ════════════════════════════════════════════════════════════
    REDUCED MOTION
    ════════════════════════════════════════════════════════════ */

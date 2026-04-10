@@ -107,3 +107,32 @@
   --duration-base:   200ms;
   --duration-slow:   300ms;
 }
+
+/* ── Dark Mode ────────────────────────────────────────────── */
+body.dark-mode {
+  --bg-page:        #1a1a1a;
+  --bg-surface:     #252525;
+  --bg-elevated:    #2a2a2a;
+  --bg-hover:       #303030;
+  --bg-dark:        #f5f5f5;
+  --bg-overlay:     rgba(0, 0, 0, 0.65);
+
+  --text-primary:   #e8e8e8;
+  --text-secondary: #a0a0a0;
+  --text-muted:     #888888;
+  --text-placeholder: #666666;
+  --text-on-dark:   #1a1a1a;
+  --text-on-accent: #ffffff;
+
+  --border:         #333333;
+  --border-input:   #555555;
+  --border-strong:  #e8e8e8;
+
+  --focus-ring:     rgba(255, 255, 255, 0.25);
+
+  --shadow-card:    rgba(0,0,0,0.2) 0px 0px 0px 1px,
+                    rgba(0,0,0,0.15) 0px 2px 6px,
+                    rgba(0,0,0,0.3) 0px 4px 8px;
+  --shadow-hover:   rgba(0,0,0,0.3) 0px 4px 12px;
+  --shadow-float:   rgba(0,0,0,0.4) 0px 6px 16px;
+}

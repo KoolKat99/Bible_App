@@ -136,20 +136,113 @@ body {
 /* ══════════════════════════════════════════════════════════════
    LAYOUT
    ══════════════════════════════════════════════════════════════ */
-.layout { display: flex; flex: 1; overflow: hidden; }
+.layout { display: flex; flex: 1; overflow: hidden; position: relative; }
 
 /* ══════════════════════════════════════════════════════════════
-   SIDEBAR
+   SIDEBARS (left & right)
    ══════════════════════════════════════════════════════════════ */
 .sidebar {
   width:          var(--sidebar-width);
   background:     var(--bg-page);
-  border-right:   1px solid var(--border);
   display:        flex;
   flex-direction: column;
   flex-shrink:    0;
-  overflow:       hidden;
+  overflow:       visible;
+  transition:     width var(--duration-slow) var(--ease-out),
+                  min-width var(--duration-slow) var(--ease-out);
 }
+
+.sidebar-left  { border-right: 1px solid var(--border); }
+.sidebar-right { border-left:  1px solid var(--border); }
+
+/* Collapsed state */
+.sidebar:not(.open) {
+  width: 0;
+  min-width: 0;
+  border: none;
+}
+.sidebar:not(.open) > *:not(.sidebar-tab-toggle) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sidebar-tab-toggle {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Inner content overflow clipping */
+#bibleTree { overflow-y: auto; overflow-x: hidden; }
+.tab-panel { overflow: hidden; }
+
+/* Sidebar header with title (right sidebar only) */
+.sidebar-header {
+  display:      flex;
+  align-items:  center;
+  gap:          var(--space-4);
+  padding:      var(--space-6) var(--space-6);
+  border-bottom: 1px solid var(--border);
+  flex-shrink:  0;
+}
+.sidebar-title {
+  flex: 1;
+  font-size:   var(--text-md);
+  font-weight: var(--weight-bold);
+  color:       var(--text-primary);
+  letter-spacing: var(--ls-tight);
+}
+
+/* Attached tab toggle on sidebar edge */
+.sidebar-tab-toggle {
+  position:     absolute;
+  top:          50%;
+  transform:    translateY(-50%);
+  z-index:      60;
+  width:        20px;
+  height:       48px;
+  background:   var(--bg-elevated);
+  border:       1px solid var(--border);
+  cursor:       pointer;
+  display:      flex;
+  align-items:  center;
+  justify-content: center;
+  padding:      0;
+  transition:   background var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
+}
+.sidebar-tab-toggle:hover {
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-hover);
+}
+.tab-toggle-icon {
+  font-size:   14px;
+  font-weight: var(--weight-bold);
+  color:       var(--text-secondary);
+  line-height: 1;
+  user-select: none;
+}
+.sidebar-tab-toggle:hover .tab-toggle-icon {
+  color: var(--text-primary);
+}
+
+/* Left sidebar tab: attached to the right edge */
+.sidebar-tab-left {
+  right:           -20px;
+  border-left:     none;
+  border-radius:   0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* Right sidebar tab: attached to the left edge */
+.sidebar-tab-right {
+  left:            -20px;
+  border-right:    none;
+  border-radius:   var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* Ensure sidebars have relative positioning for the tab */
+.sidebar { position: relative; }
 
 /* Tabs */
 .sidebar-tabs {
@@ -181,7 +274,7 @@ body {
 
 /* Search input */
 .search-input {
-  margin:         var(--space-6);
+  margin:         var(--space-8) var(--space-6) var(--space-6);
   padding:        var(--space-4) var(--space-6);
   background:     var(--bg-surface);
   border:         1px solid var(--border);
@@ -601,7 +694,8 @@ body {
   padding:       1px 0;
   transition:    background var(--duration-fast) var(--ease-out);
 }
-.verse:hover { background: var(--bg-surface); }
+.verse:hover:not(.highlighted) { background: var(--bg-surface); }
+.verse.highlighted:hover { filter: brightness(0.95); }
 .verse.selected {
   background:  rgba(255, 56, 92, 0.10);
   outline:     2px solid rgba(255, 56, 92, 0.25);
@@ -706,10 +800,37 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   DARK MODE SCROLLBAR
+   ══════════════════════════════════════════════════════════════ */
+body.dark-mode ::-webkit-scrollbar-thumb    { background: #444; }
+body.dark-mode ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR RESIZE HANDLES
+   ══════════════════════════════════════════════════════════════ */
+.sidebar-resize-handle {
+  position:   absolute;
+  top:        0;
+  bottom:     0;
+  width:      4px;
+  cursor:     col-resize;
+  z-index:    70;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle:active {
+  background: var(--rausch);
+}
+.sidebar-resize-left  { right: 0; }
+.sidebar-resize-right { left: 0; }
+
+/* ══════════════════════════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .sidebar { width: 100%; max-width: 320px; }
+  .sidebar.open { width: 100%; max-width: 320px; position: absolute; z-index: 80; top: 0; bottom: 0; }
+  .sidebar-left.open  { left: 0; }
+  .sidebar-right.open { right: 0; }
   .topbar { padding: 0 var(--space-6); gap: var(--space-3); }
   .topbar-center { display: none; }
   .reader-area { padding: var(--space-8) var(--space-6); }

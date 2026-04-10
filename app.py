@@ -135,6 +135,6 @@ def bible_structure():
     return jsonify(BIBLE)
 
 if __name__ == "__main__":
-    print("\n📖  Bible Viewer running at http://localhost:80")
+    print("\n📖  Bible Viewer running at http://localhost:5000")
     print(f"    PDF path: {os.path.abspath(PDF_PATH)}\n")
-    app.run(host='127.0.0.1', port=80, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

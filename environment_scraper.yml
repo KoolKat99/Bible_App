@@ -1,0 +1,9 @@
+name: esv_scraper
+channels:
+  - defaults
+dependencies:
+  - python=3.13
+  - pydantic
+  - beautifulsoup4
+  - python-dotenv
+  - requests

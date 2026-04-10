@@ -151,6 +151,9 @@ body {
   transition:     width var(--duration-slow) var(--ease-out),
                   min-width var(--duration-slow) var(--ease-out);
 }
+.sidebar.is-resizing {
+  transition: none;
+}
 
 .sidebar-left  { border-right: 1px solid var(--border); }
 .sidebar-right { border-left:  1px solid var(--border); }

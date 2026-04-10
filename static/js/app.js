@@ -713,6 +713,7 @@ function initSidebarResize(sidebar, side) {
     e.preventDefault();
     startX = e.clientX;
     startWidth = sidebar.getBoundingClientRect().width;
+    sidebar.classList.add('is-resizing');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
 
@@ -725,6 +726,7 @@ function initSidebarResize(sidebar, side) {
     function onMouseUp() {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      sidebar.classList.remove('is-resizing');
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     }

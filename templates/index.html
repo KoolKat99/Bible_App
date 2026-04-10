@@ -24,7 +24,8 @@
     <button class="tb-btn" id="btnNext" title="Next Chapter">›</button>
   </div>
   <div class="topbar-right">
-    <button class="tb-btn tb-btn-wide" id="btnAddBookmark" title="Bookmark this chapter">🔖 Bookmark</button>
+    <button class="tb-btn tb-btn-wide" id="btnAddHighlight" title="Highlight selected verses">🖍️ Highlight</button>
+    <button class="tb-btn tb-btn-wide" id="btnAddBookmark" title="Bookmark this chapter or selected verses">🔖 Bookmark</button>
     <button class="tb-btn tb-btn-wide" id="btnAddNote" title="Add a note">✏️ Note</button>
   </div>
 </header>
@@ -38,6 +39,7 @@
       <button class="tab active" data-tab="books">Books</button>
       <button class="tab" data-tab="bookmarks">Bookmarks</button>
       <button class="tab" data-tab="notes">Notes</button>
+      <button class="tab" data-tab="highlights">Highlights</button>
     </div>
 
     <!-- BOOKS PANEL -->
@@ -54,6 +56,11 @@
     <!-- NOTES PANEL -->
     <div class="tab-panel" id="tab-notes">
       <div id="noteList" class="item-list"></div>
+    </div>
+
+    <!-- HIGHLIGHTS PANEL -->
+    <div class="tab-panel" id="tab-highlights">
+      <div id="highlightList" class="item-list"></div>
     </div>
   </aside>
 
@@ -73,7 +80,8 @@
 <!-- Bookmark modal -->
 <div class="modal-bg" id="bookmarkModal">
   <div class="modal">
-    <h3>Bookmark Chapter</h3>
+    <h3>Bookmark</h3>
+    <div class="modal-context" id="bmContext"></div>
     <label>Label
       <input type="text" id="bmLabel" placeholder="e.g. Genesis 1 – Creation">
     </label>
@@ -88,6 +96,7 @@
 <div class="modal-bg" id="noteModal">
   <div class="modal">
     <h3>Add Note</h3>
+    <div class="modal-context" id="noteContext"></div>
     <label>Note
       <textarea id="noteText" rows="4" placeholder="Write your note…"></textarea>
     </label>
@@ -109,6 +118,28 @@
     <div class="modal-actions">
       <button class="btn-secondary" id="enCancel">Cancel</button>
       <button class="btn-primary" id="enSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Highlight color picker modal -->
+<div class="modal-bg" id="highlightModal">
+  <div class="modal">
+    <h3>Highlight Verses</h3>
+    <div class="modal-context" id="hlContext"></div>
+    <label>Color
+      <div class="color-picker" id="hlColorPicker">
+        <button class="color-swatch active" data-color="#fff3cd" style="background:#fff3cd" title="Yellow"></button>
+        <button class="color-swatch" data-color="#d1ecf1" style="background:#d1ecf1" title="Blue"></button>
+        <button class="color-swatch" data-color="#d4edda" style="background:#d4edda" title="Green"></button>
+        <button class="color-swatch" data-color="#f8d7da" style="background:#f8d7da" title="Pink"></button>
+        <button class="color-swatch" data-color="#e2d9f3" style="background:#e2d9f3" title="Purple"></button>
+        <button class="color-swatch" data-color="#ffe0cc" style="background:#ffe0cc" title="Orange"></button>
+      </div>
+    </label>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="hlCancel">Cancel</button>
+      <button class="btn-primary" id="hlSave">Save</button>
     </div>
   </div>
 </div>

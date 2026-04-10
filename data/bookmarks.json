@@ -1,10 +1,12 @@
 [
   {
     "id": 1,
-    "book": "Revelation",
-    "chapter": 4,
-    "label": "Revelation 4weqwsddsf",
+    "book": "Genesis",
+    "chapter": 1,
+    "verse_start": 11,
+    "verse_end": 12,
+    "label": "Genesis 1:11\u201312fsdf",
     "color": "#ff385c",
-    "created": "2026-04-09T18:36:19.253978"
+    "created": "2026-04-09T18:49:25.218735"
   }
 ]

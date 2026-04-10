@@ -4,11 +4,13 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
+app.json.sort_keys = False
 
 # ── Config ──────────────────────────────────────────────────────────────────
 DATA_DIR = "data"
 BOOKMARKS_FILE = os.path.join(DATA_DIR, "bookmarks.json")
 NOTES_FILE = os.path.join(DATA_DIR, "notes.json")
+HIGHLIGHTS_FILE = os.path.join(DATA_DIR, "highlights.json")
 BIBLE_JSON = os.path.join("static", "data", "ESV_Bible.json")
 
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -132,6 +134,8 @@ def add_bookmark():
         "id": len(bookmarks) + 1,
         "book": data["book"],
         "chapter": data["chapter"],
+        "verse_start": data.get("verse_start"),
+        "verse_end": data.get("verse_end"),
         "label": data.get("label", f"{data['book']} {data['chapter']}"),
         "color": data.get("color", "#ff385c"),
         "created": datetime.now().isoformat()
@@ -160,7 +164,8 @@ def add_note():
         "id": len(notes) + 1,
         "book": data["book"],
         "chapter": data["chapter"],
-        "verse": data.get("verse"),
+        "verse_start": data.get("verse_start"),
+        "verse_end": data.get("verse_end"),
         "text": data["text"],
         "created": datetime.now().isoformat()
     }
@@ -182,6 +187,35 @@ def update_note(nid):
         if n["id"] == nid:
             n["text"] = data.get("text", n["text"])
     _save(NOTES_FILE, notes)
+    return jsonify({"ok": True})
+
+
+# ── Highlights ───────────────────────────────────────────────────────────────
+@app.route("/api/highlights", methods=["GET"])
+def get_highlights():
+    return jsonify(_load(HIGHLIGHTS_FILE))
+
+@app.route("/api/highlights", methods=["POST"])
+def add_highlight():
+    data = request.json
+    highlights = _load(HIGHLIGHTS_FILE)
+    highlight = {
+        "id": len(highlights) + 1,
+        "book": data["book"],
+        "chapter": data["chapter"],
+        "verse_start": data["verse_start"],
+        "verse_end": data.get("verse_end", data["verse_start"]),
+        "color": data.get("color", "#fff3cd"),
+        "created": datetime.now().isoformat()
+    }
+    highlights.append(highlight)
+    _save(HIGHLIGHTS_FILE, highlights)
+    return jsonify(highlight), 201
+
+@app.route("/api/highlights/<int:hid>", methods=["DELETE"])
+def delete_highlight(hid):
+    highlights = [h for h in _load(HIGHLIGHTS_FILE) if h["id"] != hid]
+    _save(HIGHLIGHTS_FILE, highlights)
     return jsonify({"ok": True})
 
 
